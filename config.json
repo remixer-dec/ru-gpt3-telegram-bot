@@ -1,0 +1,18 @@
+{
+	"no_cuda": false, 
+	"model_name_or_path": "C:/path/to/model/rugpt3medium_based_on_gpt2", 
+	"length": 64, 
+	"temperature": 1.0, 
+	"kvalue": 50, 
+	"pvalue": 0.92, 
+	"repetition_penalty": 1.0, 
+	"tg_token": "", 
+	"role": "новая форма искусственного интеллекта", 
+	"rod": "m", 
+	"history": "chat", 
+	"stop_command": "stopthebot", 
+	"stop_token": "</s>",
+	"admin_id": 1810772, 
+	"use_whitelist": false, 
+	"whitelist": [1810772, -100123, -100321]
+}
