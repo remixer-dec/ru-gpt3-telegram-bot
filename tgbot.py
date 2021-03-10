@@ -161,3 +161,4 @@ async def tg_stop(ctx):
     """Остановка бота"""
     if ctx.author.id == cfg.admin_id:
         queue.queue.insert(0, queue.build_item(cfg.stop_command, ctx))
+        queue.pull_the_trigger()

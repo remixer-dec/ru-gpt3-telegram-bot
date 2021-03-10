@@ -47,15 +47,16 @@ model.to(device)
 print("model data loaded")
 
 
-def gpt_loop():
+async def gpt_runtime():
     prompt_text = ""
     user = -1
+    queue.activate(GPT_EVENT_LOOP)
     print("starting the bot")
     _thread.start_new_thread(bot.run, ())
     while not (prompt_text == cfg.stop_command and user == cfg.admin_id):
         prompt_text = ""
         while not len(prompt_text):
-            prompt_text, reply, action, user, chat, loop, rparser, pmod = queue.get_item()
+            prompt_text, reply, action, user, chat, loop, rparser, pmod = await queue.get_item()
         asyncio.run_coroutine_threadsafe(action('typing'), loop)
         asyncio.run_coroutine_threadsafe(delay(action, 5, 'typing'), loop)
         print('< ' + prompt_text)
@@ -116,4 +117,5 @@ def gpt_loop():
 
 
 if __name__ == "__main__":
-    gpt_loop()
+    GPT_EVENT_LOOP = asyncio.new_event_loop()
+    GPT_EVENT_LOOP.run_until_complete(gpt_runtime())

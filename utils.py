@@ -34,17 +34,35 @@ def filter_symbol(string, symbol, alternative):
 
 class Queue:
     """Очередь сообщений"""
-    def __init__(self):
+    def __init__(self, max_in_queue_per_user=10):
         self.queue = []
         self.limits = {}
+        self.max_per_user = max_in_queue_per_user
+        
+    def activate(self, loop=False):
+        """Вызывается из нового созданого event-loop'a чтобы не конфликтовать с тележной либой, обнуляет фьючер (🏒)"""
+        if loop:
+            self.loop = loop
+        self.not_empty = asyncio.Future()
+
+    @asyncio.coroutine
+    def _trigger(self):
+        """Существует для установки результата фьючера о наличии сообщения из правильного event-loop'a (🏒)"""
+        if len(self.queue) > 0:
+            self.not_empty.set_result(True)
+            
+    def pull_the_trigger(self):
+        """Обёртка для функции _trigger"""
+        asyncio.run_coroutine_threadsafe(self._trigger(), self.loop)
 
     def build_item(self, text, ctx, responseParser=None, pOffset=0):
         return (text, ctx.message.reply, ctx.chat.send_action, ctx.author.id,
                 ctx.chat.id, asyncio.get_event_loop(), responseParser, pOffset)
 
-    def get_item(self):
-        while len(self.queue) == 0:
-            pass
+    async def get_item(self):
+        if len(self.queue) == 0:
+            await self.not_empty
+            self.activate()
         return self.queue.pop(0) if len(self.queue) > 0 else ""
 
     def add_to(self, item, user):
@@ -54,8 +72,9 @@ class Queue:
             self.limits[user] = 1
         else:
             self.limits[user] += 1
-        if self.limits[user] <= 10:
+        if self.limits[user] <= self.max_per_user:
             self.queue.append(item)
+            self.pull_the_trigger()
 
 
 def cut_extra_stuff(txt):
